@@ -9,6 +9,8 @@ export function balance(ledger: Array<Transaction>, address: string): number {
         return acc - tx.amount;
       } else if (address = tx.toAddr) {
         return acc + tx.amount;
+      } else {
+        return acc;
       }
     },
     0
