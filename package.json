@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "eslint": "^7.31.0",
+    "prettier": "^2.3.2"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "ignorePatterns": [
+      "**/*.js",
+      "**/node_modules"
+    ]
+  },
+  "scripts": {
+    "lint": "eslint --fix .",
+    "format": "prettier --write \"**/*.+(ts|tsx|js|jsx|json|css|md)\""
+  }
+}

@@ -1,0 +1,22 @@
+body {
+  font-family: "Roboto", sans-serif;
+}
+
+table {
+  width: 600px;
+  border: 1px solid #000;
+}
+
+thead {
+  background-color: #ccc;
+  border-bottom: 1px solid #000;
+}
+
+thead td {
+  text-align: center;
+  font-weight: bold;
+}
+
+.center {
+  text-align: center;
+}

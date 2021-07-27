@@ -1,46 +1,55 @@
-import express from "express";
-import bodyParser from "body-parser";
-import WebSocket from "ws";
-import http from "http";
-import _ from "lodash";
+import * as express from "express";
+import * as bodyParser from "body-parser";
+import * as cors from "cors";
+import { createServer } from "http";
+import { Server, Socket } from "socket.io";
+import * as _ from "lodash";
+
+import { Transaction } from "./types";
+import config from "./config";
 
 const app = express();
-const server = http.createServer(app);
-const port = 3000;
-const wss = new WebSocket.Server({ server });
+const httpServer = createServer(app);
 
-interface Transaction {
-  fromAddr: string;
-  toAddr: string;
-  amount: string;
-  time: Date;
-}
+const ledger: Array<Transaction> = [];
+const clients: Array<Socket> = [];
 
-const transactions: Array<Transaction> = [];
-const wsClients: Array<WebSocket> = [];
-
-wss.on("connection", (ws) => {
-  console.log("Connected websocket client");
-  wsClients.push(ws);
+const io = new Server(httpServer, {
+  cors: {
+    origin: config.web.url,
+    methods: ["GET", "POST"],
+  },
 });
+io.on("connection", (ws) => clients.push(ws));
 
+app.use(cors());
 app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
-  res.json(transactions);
+  res.json(ledger);
+});
+
+app.get("/:address", (req, res) => {
+  res.json(_.filter(ledger, (tx) => tx.toAddr == req.params.address));
 });
 
 app.post("/", (req, res) => {
-  const tx: Transaction = _.defaults(req.body, { 
-    fromAddr: "Genesis",
-    time: new Date()
-  });
+  if (config.debug) {
+    console.log("POST: ", req.body);
+  }
 
-  transactions.push(tx);
-  _.forEach(wsClients, (ws) => ws.send(tx));
-  res.json(tx);
+  const tx: Transaction = _.defaults(req.body, {
+    fromAddr: "Genesis",
+    timestamp: new Date(),
+  } as Partial<Transaction>);
+
+  ledger.push(tx);
+  _.forEach(clients, (ws) => ws.emit("transaction", tx));
+
+  res.status(201).end();
 });
 
-app.listen(port, () => {
-  console.log(`xcoin running on http://localhost:${port}`);
+// HTTP Server
+httpServer.listen(config.xcoin.port, () => {
+  console.log(`xcoin running on ${config.xcoin.url}`);
 });
